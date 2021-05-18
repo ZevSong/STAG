@@ -68,7 +68,7 @@ digraph layout {
 
         subgraph cluster999 {
             node [shape = "none"];
-            unplaced [description = "Storage for any entities not placed in the game"]
+            unplaced [description = "Storage for any entity not placed in the game"]
             subgraph characters {
                 node [shape = "ellipse"];
                 lumberjack [description = "A burly wood cutter"];

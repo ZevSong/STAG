@@ -1,9 +1,14 @@
+import entity.Player;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
 class StagServer
 {
+    private StagController stagController;
+    private Player player;
+
     public static void main(String args[])
     {
         if(args.length != 2) System.out.println("Usage: java StagServer <entity-file> <action-file>");
@@ -13,6 +18,7 @@ class StagServer
     public StagServer(String entityFilename, String actionFilename, int portNumber)
     {
         try {
+
             ServerSocket ss = new ServerSocket(portNumber);
             System.out.println("Server Listening");
             while(true) acceptNextConnection(ss);
@@ -40,6 +46,9 @@ class StagServer
     private void processNextCommand(BufferedReader in, BufferedWriter out) throws IOException
     {
         String line = in.readLine();
+        String[] tokens = line.split(" ");
+
+
         out.write("You said... " + line + "\n");
     }
 }
