@@ -1,10 +1,10 @@
-package entity;
+package gameParser.entity;
 
-public class Entity {
+public class StagEntity {
     private String name;
     private String description;
 
-    public Entity(String name, String description) {
+    public StagEntity(String name, String description) {
         this.name = name;
         this.description = description;
     }

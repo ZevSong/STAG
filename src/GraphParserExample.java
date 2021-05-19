@@ -20,10 +20,10 @@ public class GraphParserExample {
                 for (Graph g1 : subGraphs1){
                     ArrayList<Node> nodesLoc = g1.getNodes(false);
                     Node nLoc = nodesLoc.get(0);
-                    System.out.printf("\tid = %s, name = %s\n",g1.getId().getId(), nLoc.getId().getId());
+                    System.out.printf("\tlocation: id = %s, name = %s\n",g1.getId().getId(), nLoc.getId().getId());
                     ArrayList<Graph> subGraphs2 = g1.getSubgraphs();
                     for (Graph g2 : subGraphs2) {
-                        System.out.printf("\t\tid = %s\n", g2.getId().getId());
+                        System.out.printf("\t\tentities: id = %s\n", g2.getId().getId());
                         ArrayList<Node> nodesEnt = g2.getNodes(false);
                         for (Node nEnt : nodesEnt) {
                             System.out.printf("\t\t\tid = %s, description = %s\n", nEnt.getId().getId(), nEnt.getAttribute("description"));

@@ -1,6 +1,6 @@
-package entity;
+package gameParser.entity;
 
-public class Character extends Entity {
+public class Character extends StagEntity {
     public Character(String name, String description) {
         super(name, description);
     }

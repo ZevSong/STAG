@@ -1,8 +1,7 @@
-import entity.Player;
+import gameParser.entity.Player;
 
 import java.io.*;
 import java.net.*;
-import java.util.*;
 
 class StagServer
 {
@@ -11,7 +10,7 @@ class StagServer
 
     public static void main(String args[])
     {
-        if(args.length != 2) System.out.println("Usage: java StagServer <entity-file> <action-file>");
+        if(args.length != 2) System.out.println("Usage: java StagServer <gameParser.entity-file> <action-file>");
         else new StagServer(args[0], args[1], 8888);
     }
 
