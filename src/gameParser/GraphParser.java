@@ -96,7 +96,8 @@ public class GraphParser {
     private void setPathMap(Edge path) {
         String startLocationName = path.getSource().getNode().getId().getId();
         String endLocationName = path.getTarget().getNode().getId().getId();
-        pathMap.put(startLocationName, endLocationName);
+        // new String is used to make key repeatable
+        pathMap.put(new String(startLocationName), endLocationName);
     }
 
     public ArrayList<Location> getLocationList() {

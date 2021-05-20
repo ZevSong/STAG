@@ -3,7 +3,6 @@ import gameParser.GraphParser;
 import gameParser.action.StagAction;
 import gameParser.entity.Artefact;
 import gameParser.entity.Location;
-import gameParser.entity.Player;
 import gameParser.entity.StagEntity;
 
 import java.io.IOException;
@@ -13,12 +12,12 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 
 public class StagGameModel {
-    private ArrayList<Location> locationList;
-    private HashMap<StagEntity, String> entityMap;
-    private IdentityHashMap<String, String> pathMap;
-    private ArrayList<StagAction> stagActionList;
-    private HashSet<String> buildInCommandsSet;
-    private HashMap<Artefact, String> inventoryMap;
+    private final ArrayList<Location> locationList;
+    private final HashMap<StagEntity, String> entityMap;
+    private final IdentityHashMap<String, String> pathMap;
+    private final ArrayList<StagAction> stagActionList;
+    private final HashSet<String> buildInCommandsSet;
+    private final HashMap<Artefact, String> inventoryMap;
 
     public StagGameModel(String entityFilename, String actionFilename) throws IOException {
         // graph
@@ -77,10 +76,13 @@ public class StagGameModel {
         return inventoryMap;
     }
 
+    // return all entities that have a location value
     public HashSet<StagEntity> getEntitySet() {
         HashSet<StagEntity> entitySet = new HashSet<>();
         for (StagEntity stagEntity: entityMap.keySet()) {
-            entitySet.add(stagEntity);
+            if (!entityMap.get(stagEntity).equals("")) {
+                entitySet.add(stagEntity);
+            }
         }
         return entitySet;
     }

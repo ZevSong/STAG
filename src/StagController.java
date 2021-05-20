@@ -116,7 +116,8 @@ public class StagController {
                 if (entity.isCollectible()) {
                     // put it to inventoryMap and remove from entityMap
                     gameWorld.getInventoryMap().put((Artefact)entity, this.curPlayer.getName());
-                    gameWorld.getEntityMap().remove(entity);
+                    // do not just remove the key-value, in case it maybe reProduced
+                    gameWorld.getEntityMap().replace(entity, "");
                     return "You picked up a " + entity.getName() + ".";
                 } else {
                     return "You can't get the " + entity.getName() + " because it cannot be collected.";
@@ -195,9 +196,8 @@ public class StagController {
     }
 
     private boolean isContainTriggers(String[] tokens) {
-        ArrayList<StagAction> stagActionList = gameWorld.getStagActionList();
         for (int i = 1; i < tokens.length; i++) {
-            for (StagAction stagAction: stagActionList) {
+            for (StagAction stagAction: gameWorld.getStagActionList()) {
                 if (stagAction.getTriggers().contains(tokens[i])) {
                     return true;
                 }
@@ -207,7 +207,137 @@ public class StagController {
     }
 
     private String handleActionCommand(String[] tokens) {
-        return "";
+        StringBuilder stringBuffer = new StringBuilder();
+        // find possibleActions
+        ArrayList<StagAction> possibleActionList = getPossibleActionList(tokens);
+        if (possibleActionList.size() == 0) {
+            return "Did not find any build-in commands or trigger words, please enter some real commands.";
+        }
+        // check conditions
+        stringBuffer.append(handlePossibleActions(possibleActionList));
+
+        return stringBuffer.toString();
+    }
+
+    private ArrayList<StagAction> getPossibleActionList(String[] tokens) {
+        ArrayList<StagAction> possibleActionList = new ArrayList<>();
+        for (StagAction stagAction: gameWorld.getStagActionList()) {
+            for (String triggerWord: stagAction.getTriggers()) {
+                if (isTokensContained(tokens, triggerWord)) {
+                    possibleActionList.add(stagAction);
+                    break;
+                }
+            }
+        }
+        return possibleActionList;
+    }
+
+    private boolean isTokensContained(String[] tokens, String keyword) {
+        for (int i = 1; i < tokens.length; i++) {
+            if (tokens[i].equals(keyword)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String handlePossibleActions(ArrayList<StagAction> possibleActions) {
+        // check each action
+        for (StagAction stagAction: possibleActions) {
+            int counter = 0;
+            // check if subjects all in location and pocket, and count
+            for (String subject: stagAction.getSubjects()) {
+                if (isInCurLocationOrPocket(subject)) {
+                    counter++;
+                }
+            }
+            // get enough subjects
+            if (counter == stagAction.getSubjects().size()) {
+                return doAction(stagAction); // each command could only trigger one action
+            }
+        }
+        // If it runs to this point, no action is executed
+        return "You can not trigger that action because there is not enough subjects.";
+    }
+
+    private boolean isInCurLocationOrPocket(String entityName) {
+        for (StagEntity stagEntity: gameWorld.getEntitySet()) {
+            if (stagEntity.getName().equals(entityName)) {
+                if (gameWorld.getEntityMap().get(stagEntity).equals(this.curLocation.getName())) {
+                    return true;
+                }
+            }
+        }
+        for (Artefact artefact: gameWorld.getInventoryMap().keySet()) {
+            if (artefact.getName().equals(entityName)) {
+                if (gameWorld.getInventoryMap().get(artefact).equals(this.curPlayer.getName())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private String doAction(StagAction stagAction) {
+        doConsumedAction(stagAction);
+        doProducedAction(stagAction);
+        return stagAction.getNarration();
+    }
+
+    private void doConsumedAction(StagAction stagAction) {
+        for (String consumed: stagAction.getConsumed()) {
+            if (isLocation(consumed)) {
+                // remove all path to that location
+                for (String startLocation : gameWorld.getPathMap().keySet()) {
+                    if (gameWorld.getPathMap().get(startLocation).equals(consumed)) {
+                        gameWorld.getPathMap().remove(startLocation);
+                    }
+                }
+            } else {
+                // not location
+                removeFromWorldAndPocket(consumed);
+            }
+        }
+    }
+
+    private void removeFromWorldAndPocket(String name) {
+        for (StagEntity stagEntity: gameWorld.getEntitySet()) {
+            if (stagEntity.getName().equals(name)) {
+                // do not just remove it, in case it be reProduced
+                gameWorld.getEntityMap().replace(stagEntity, "");
+                return;
+            }
+        }
+        for (Artefact artefact: gameWorld.getInventoryMap().keySet()) {
+            if (artefact.getName().equals(name)) {
+                gameWorld.getInventoryMap().remove(artefact);
+                return;
+            }
+        }
+
+    }
+
+    private boolean isLocation(String str) {
+        for (Location location: gameWorld.getLocationList()) {
+            if (location.getName().equals(str)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void doProducedAction(StagAction stagAction) {
+        for (String produced: stagAction.getProduced()) {
+            if (isLocation(produced)) {
+                gameWorld.getPathMap().put(new String(this.curLocation.getName()), produced);
+            }
+            for (StagEntity stagEntity: gameWorld.getEntityMap().keySet()) {
+                if (stagEntity.getName().equals(produced)) {
+                    gameWorld.getEntityMap().put(stagEntity, this.curLocation.getName());
+                    break;
+                }
+            }
+        }
     }
 
 }

@@ -1,5 +1,3 @@
-import gameParser.entity.Player;
-
 import java.io.*;
 import java.net.*;
 
@@ -46,14 +44,10 @@ class StagServer
     {
         String line = in.readLine();
         String[] tokens = line.split(" ");
-        String playerName = tokens[0].split(":")[0];// remove :
-        // Player curPlayer = getPlayer.(playerName);
-
         if (tokens.length <= 1) {
             out.write("No command entered, you have to say something to play the game.");
             return;
         }
         out.write(stagController.handleTokens(tokens));
-        System.out.println("You said: " + line);
     }
 }

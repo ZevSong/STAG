@@ -1,8 +1,8 @@
 package gameParser.entity;
 
 public class StagEntity {
-    private String name;
-    private String description;
+    private final String name;
+    private final String description;
 
     public StagEntity(String name, String description) {
         this.name = name;
