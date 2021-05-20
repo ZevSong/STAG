@@ -22,7 +22,7 @@ public class StagController {
         String curPlayerName = tokens[0].split(":")[0];// remove :
         setCurPlayerAndLocation(curPlayerName);
         // Identify command type and handle it
-        StringBuffer message = new StringBuffer();
+        StringBuilder message = new StringBuilder();
         if (isBuildInCommand(tokens)) {
             message.append(handleBuildInCommand(tokens)).append("\n");
         } else if (isContainTriggers(tokens)) {
@@ -30,6 +30,13 @@ public class StagController {
         } else {
             message.append("Did not find any build-in commands or trigger words, please enter some real commands.");
         }
+        // check curPlayer healthLevel
+        if (curPlayer.getHealthLevel() <= 0) {
+            message.append("Your health level <= 0, you died and all the items in your pocket are dropped.\n");
+            message.append("You are resurrected at the starting point.");
+            resetCurPlayer();
+        }
+        gameWorld.getEntityMap().put(curPlayer, curLocation.getName());
 
         return message.toString();
     }
@@ -170,7 +177,7 @@ public class StagController {
             if (stagEntity.getClassName().equals("Player")) {
                 // do not show the curPlayer himself/herself
                 if (!stagEntity.getName().equals(curPlayer.getName())) {
-                    stringBuilder.append("\nPlayer: ").append(stagEntity.getName());
+                    stringBuilder.append("\nPlayer: ").append(stagEntity.getName()).append("\tHealthLevel: ").append(curPlayer.getHealthLevel());
                 }
             } else {
                 stringBuilder.append("\n").append(stagEntity.getDescription());
@@ -286,6 +293,7 @@ public class StagController {
 
     private void doConsumedAction(StagAction stagAction) {
         for (String consumed: stagAction.getConsumed()) {
+            // check if is location or health
             if (isLocation(consumed)) {
                 // remove all path to that location
                 for (String startLocation : gameWorld.getPathMap().keySet()) {
@@ -293,8 +301,10 @@ public class StagController {
                         gameWorld.getPathMap().remove(startLocation);
                     }
                 }
+            } else if (consumed.equals("health")) {
+                curPlayer.loseHealth(1);
             } else {
-                // not location
+                // not location or health
                 removeFromWorldAndPocket(consumed);
             }
         }
@@ -314,7 +324,6 @@ public class StagController {
                 return;
             }
         }
-
     }
 
     private boolean isLocation(String str) {
@@ -328,16 +337,32 @@ public class StagController {
 
     private void doProducedAction(StagAction stagAction) {
         for (String produced: stagAction.getProduced()) {
+            // check if is location or health
             if (isLocation(produced)) {
                 gameWorld.getPathMap().put(new String(this.curLocation.getName()), produced);
-            }
-            for (StagEntity stagEntity: gameWorld.getEntityMap().keySet()) {
-                if (stagEntity.getName().equals(produced)) {
-                    gameWorld.getEntityMap().put(stagEntity, this.curLocation.getName());
-                    break;
+            } else if (produced.equals("health")) {
+                curPlayer.improveHealth(1);
+            } else {
+                // not location or health
+                for (StagEntity stagEntity: gameWorld.getEntityMap().keySet()) {
+                    if (stagEntity.getName().equals(produced)) {
+                        gameWorld.getEntityMap().put(stagEntity, this.curLocation.getName());
+                        break;
+                    }
                 }
             }
         }
+    }
+
+    private void resetCurPlayer() {
+        for (Artefact artefact: gameWorld.getInventoryMap().keySet()) {
+            if (gameWorld.getInventoryMap().get(artefact).equals(curPlayer.getName())) {
+                gameWorld.getEntityMap().put(artefact, curLocation.getName());
+                gameWorld.getInventoryMap().remove(artefact);
+            }
+        }
+        curPlayer.resetHealth();
+        curLocation = gameWorld.getLocationList().get(0);
     }
 
 }
