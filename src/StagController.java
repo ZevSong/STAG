@@ -17,10 +17,9 @@ public class StagController {
         this.gameWorld = stagGameModel;
     }
 
-    public String handleTokens(String[] tokens) {
+    public String handleTokens(String playerName, String[] tokens) {
         // get the player name by the first token, set the curPlayer and curLocationName
-        String curPlayerName = tokens[0].split(":")[0];// remove :
-        setCurPlayerAndLocation(curPlayerName);
+        setCurPlayerAndLocation(playerName);
         // Identify command type and handle it
         StringBuilder message = new StringBuilder();
         if (isBuildInCommand(tokens)) {
@@ -73,31 +72,28 @@ public class StagController {
     }
 
     private boolean isBuildInCommand(String[] tokens) {
-        return gameWorld.getBuildInCommandsSet().contains(tokens[1]);
+        for (String token: tokens) {
+            if (gameWorld.getBuildInCommandsSet().contains(token)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // switch to different build-in command cases
     private String handleBuildInCommand(String[] tokens) {
-        String returnMessage = "";
-        switch (tokens[1]) {
-            case "inventory":
-            case "inv":
-                returnMessage = handleInv();
-                break;
-            case "get":
-                returnMessage = handleGet(tokens);
-                break;
-            case "drop":
-                returnMessage = handleDrop(tokens);
-                break;
-            case "goto":
-                returnMessage = handleGoto(tokens);
-                break;
-            case "look":
-                returnMessage = handleLook();
-                break;
+        if (isTokensContained(tokens, "inventory") || isTokensContained(tokens, "inv")) {
+            return handleInv();
+        } else if (isTokensContained(tokens, "get")) {
+            return handleGet(tokens);
+        } else if (isTokensContained(tokens, "drop")) {
+            return handleDrop(tokens);
+        } else if (isTokensContained(tokens, "goto")) {
+            return handleGoto(tokens);
+        }else if (isTokensContained(tokens, "look")) {
+            return handleLook();
         }
-        return returnMessage;
+        return null;
     }
 
     // return the information of curPlayer's inventory
@@ -117,22 +113,24 @@ public class StagController {
     }
 
     /* get command, pick the item for curPlayer
-     * should enter get [ArtefactName] */
+     * should enter word [get] and [ArtefactName] */
     private String handleGet(String[] tokens) {
-        if (tokens.length < 3) {
+        if (tokens.length < 2) {
             return "You need to enter the name of the item to be collected.";
         }
         for (StagEntity entity: gameWorld.getEntitySet()) {
-            if (entity.getName().equals(tokens[2]) &&
-                    gameWorld.getEntityMap().get(entity).equals(this.curLocation.getName())) {
-                if (entity.isCollectible()) {
-                    // put it to inventoryMap and remove from entityMap
-                    gameWorld.getInventoryMap().put((Artefact)entity, this.curPlayer.getName());
-                    // do not just remove the key-value, in case it maybe reProduced
-                    gameWorld.getEntityMap().replace(entity, "");
-                    return "You picked up a " + entity.getName() + ".";
-                } else {
-                    return "You can't get the " + entity.getName() + " because it cannot be collected.";
+            for (String token: tokens) {
+                if (entity.getName().equals(token) &&
+                        gameWorld.getEntityMap().get(entity).equals(this.curLocation.getName())) {
+                    if (entity.isCollectible()) {
+                        // put it to inventoryMap and remove from entityMap
+                        gameWorld.getInventoryMap().put((Artefact)entity, this.curPlayer.getName());
+                        // do not just remove the key-value, in case it maybe reProduced
+                        gameWorld.getEntityMap().replace(entity, "");
+                        return "You picked up a " + entity.getName() + ".";
+                    } else {
+                        return "You can't get the " + entity.getName() + " because it cannot be collected.";
+                    }
                 }
             }
         }
@@ -140,18 +138,20 @@ public class StagController {
     }
 
     /* drop command, drop the item for curPlayer
-     * should enter drop [ArtefactName] */
+     * should enter word [drop] and [ArtefactName] */
     private String handleDrop(String[] tokens) {
-        if (tokens.length < 3) {
+        if (tokens.length < 2) {
             return "You need to enter the name of the item to be dropped.";
         }
-        for (Artefact artefact: gameWorld.getInventoryMap().keySet()) {
-            if (artefact.getName().equals(tokens[2]) &&
-                    gameWorld.getInventoryMap().get(artefact).equals(this.curPlayer.getName())) {
-                // remove it from inventoryMap and put to entityMap
-                gameWorld.getInventoryMap().remove(artefact);
-                gameWorld.getEntityMap().put(artefact, this.curLocation.getName());
-                return "You dropped " + artefact.getName() + ".";
+        for (String token: tokens) {
+            for (Artefact artefact: gameWorld.getInventoryMap().keySet()) {
+                if (artefact.getName().equals(token) &&
+                        gameWorld.getInventoryMap().get(artefact).equals(this.curPlayer.getName())) {
+                    // remove it from inventoryMap and put to entityMap
+                    gameWorld.getInventoryMap().remove(artefact);
+                    gameWorld.getEntityMap().put(artefact, this.curLocation.getName());
+                    return "You dropped " + artefact.getName() + ".";
+                }
             }
         }
         return "You don't have such item.";
@@ -161,19 +161,17 @@ public class StagController {
      * also auto do the look command to show surroundings of next location
      * should enter goto [nextLocationName] */
     private String handleGoto(String[] tokens) {
-        if (tokens.length < 3) {
+        if (tokens.length < 2) {
             return "You need to enter the name of the location to go.\n";
         }
-        if (tokens[2].equals(this.curLocation.getName())) {
-            return "You are already at this location.";
-        }
-        for (String startLocationName: gameWorld.getPathMap().keySet()) {
-            if (startLocationName.equals(this.curLocation.getName()) &&
-                    gameWorld.getPathMap().get(startLocationName).equals(tokens[2])) {
-                String curLocationName = tokens[2];
-                this.curLocation = getLocationByName(curLocationName);
-                gameWorld.getEntityMap().put(this.curPlayer, curLocationName);
-                return handleLook();
+        for (String token: tokens) {
+            for (String startLocationName: gameWorld.getPathMap().keySet()) {
+                if (startLocationName.equals(this.curLocation.getName()) &&
+                        gameWorld.getPathMap().get(startLocationName).equals(token)) {
+                    this.curLocation = getLocationByName(token);
+                    gameWorld.getEntityMap().put(this.curPlayer, token);
+                    return handleLook();
+                }
             }
         }
         return "There is no path to such location.";
@@ -216,9 +214,9 @@ public class StagController {
     }
 
     private boolean isContainTriggers(String[] tokens) {
-        for (int i = 1; i < tokens.length; i++) {
+        for (String token: tokens) {
             for (StagAction stagAction: gameWorld.getStagActionList()) {
-                if (stagAction.getTriggers().contains(tokens[i])) {
+                if (stagAction.getTriggers().contains(token)) {
                     return true;
                 }
             }
@@ -232,30 +230,44 @@ public class StagController {
         ArrayList<StagAction> possibleActionList = getPossibleActionList(tokens);
         // no possible action
         if (possibleActionList.size() == 0) {
-            return "Did not find any build-in commands or trigger words, please enter some real commands.";
+            return "Command need contains at least one trigger word and one subject for actions, please try again.";
         }
         // check conditions and run
         stringBuffer.append(handlePossibleActions(possibleActionList));
         return stringBuffer.toString();
     }
 
-    // check if tokens contain the trigger words for actions, and return possible actions
+    /* check if tokens contain at least one trigger word and one subject for actions,
+     * and return possible actions. */
     private ArrayList<StagAction> getPossibleActionList(String[] tokens) {
         ArrayList<StagAction> possibleActionList = new ArrayList<>();
+        boolean isTriggerWordContained = false;
+        boolean isSubjectContained = false;
         for (StagAction stagAction: gameWorld.getStagActionList()) {
+            // in tokens, at least one trigger word for this action
             for (String triggerWord: stagAction.getTriggers()) {
                 if (isTokensContained(tokens, triggerWord)) {
-                    possibleActionList.add(stagAction);
+                   isTriggerWordContained = true;
+                   break;
+                }
+            }
+            // in tokens, at least one subject for this action
+            for (String subject: stagAction.getSubjects()) {
+                if (isTokensContained(tokens, subject)) {
+                    isSubjectContained = true;
                     break;
                 }
+            }
+            if (isTriggerWordContained && isSubjectContained) {
+                possibleActionList.add(stagAction);
             }
         }
         return possibleActionList;
     }
 
     private boolean isTokensContained(String[] tokens, String keyword) {
-        for (int i = 1; i < tokens.length; i++) {
-            if (tokens[i].equals(keyword)) {
+        for (String token: tokens) {
+            if (token.equals(keyword)) {
                 return true;
             }
         }

@@ -43,11 +43,16 @@ class StagServer
     private void processNextCommand(BufferedReader in, BufferedWriter out) throws IOException
     {
         String line = in.readLine();
-        String[] tokens = line.split(" ");
-        if (tokens.length <= 1) {
+        int index = line.indexOf(":");
+        // get player's name, it will before the first ":"
+        String playerName = line.substring(0, index);
+        // remove ":" and " ";
+        String[] tokens = line.substring(index+1).trim().split(" ");
+
+        if (tokens.length < 1) {
             out.write("No command entered, you have to say something to play the game.");
             return;
         }
-        out.write(stagController.handleTokens(tokens));
+        out.write(stagController.handleTokens(playerName, tokens));
     }
 }
