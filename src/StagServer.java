@@ -6,7 +6,6 @@ import java.net.*;
 class StagServer
 {
     private StagController stagController;
-    private Player player;
 
     public static void main(String args[])
     {
@@ -17,7 +16,8 @@ class StagServer
     public StagServer(String entityFilename, String actionFilename, int portNumber)
     {
         try {
-
+            StagGameModel gameModel = new StagGameModel(entityFilename, actionFilename);
+            this.stagController = new StagController(gameModel);
             ServerSocket ss = new ServerSocket(portNumber);
             System.out.println("Server Listening");
             while(true) acceptNextConnection(ss);
@@ -46,8 +46,14 @@ class StagServer
     {
         String line = in.readLine();
         String[] tokens = line.split(" ");
+        String playerName = tokens[0].split(":")[0];// remove :
+        // Player curPlayer = getPlayer.(playerName);
 
-
-        out.write("You said... " + line + "\n");
+        if (tokens.length <= 1) {
+            out.write("No command entered, you have to say something to play the game.");
+            return;
+        }
+        out.write(stagController.handleTokens(tokens));
+        System.out.println("You said: " + line);
     }
 }

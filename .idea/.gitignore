@@ -3,3 +3,6 @@
 /dataSources/
 /dataSources.local.xml
 /httpRequests/
+# System Files
+.DS_Store
+

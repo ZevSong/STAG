@@ -12,19 +12,19 @@ import java.util.HashMap;
 import java.util.IdentityHashMap;
 
 public class GraphParser {
-    private ArrayList<Location> locationList;
-    private HashMap<StagEntity, String> entityMap;
-    private IdentityHashMap<String, String> pathMap;
+    private final ArrayList<Location> locationList;
+    private final HashMap<StagEntity, String> entityMap;
+    private final IdentityHashMap<String, String> pathMap;
 
-    public GraphParser(String entityFilename) {
+    public GraphParser(String entityFilename) throws IOException {
         this.locationList = new ArrayList<>();
         this.entityMap = new HashMap<>();
         this.pathMap = new IdentityHashMap<>();
+        FileReader reader = new FileReader(entityFilename);
         try {
-            FileReader reader = new FileReader(entityFilename);
             setDataFromDot(reader);
-        } catch (IOException | ParseException e) {
-            System.out.println(e);
+        } catch (ParseException e) {
+            System.err.println(e);
         }
     }
 
@@ -74,15 +74,19 @@ public class GraphParser {
         for (Node nEnt : nodesEnt) {
             String itemId = nEnt.getId().getId();
             String description = nEnt.getAttribute("description");
-            if (entitiesType.equals("artefacts")) {
-                Artefact artefact = new Artefact(itemId, description);
-                entityMap.put(artefact, locationName);
-            } else if (entitiesType.equals("furniture")) {
-                Furniture furniture = new Furniture(itemId, description);
-                entityMap.put(furniture, locationName);
-            } else if (entitiesType.equals("characters")) {
-                Character character = new Character(itemId, description);
-                entityMap.put(character, locationName);
+            switch (entitiesType) {
+                case "artefacts":
+                    Artefact artefact = new Artefact(itemId, description);
+                    entityMap.put(artefact, locationName);
+                    break;
+                case "furniture":
+                    Furniture furniture = new Furniture(itemId, description);
+                    entityMap.put(furniture, locationName);
+                    break;
+                case "characters":
+                    Character character = new Character(itemId, description);
+                    entityMap.put(character, locationName);
+                    break;
             }
         }
     }
@@ -104,7 +108,7 @@ public class GraphParser {
     }
 
     public IdentityHashMap<String, String> getPathMap() {
-        return getPathMap();
+        return pathMap;
     }
 
 }

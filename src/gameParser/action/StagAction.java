@@ -3,11 +3,11 @@ package gameParser.action;
 import java.util.HashSet;
 
 public class StagAction {
-    private HashSet<String> triggers;
-    private HashSet<String> subjects;
-    private HashSet<String> consumed;
-    private HashSet<String> produced;
-    private String narration;
+    private final HashSet<String> triggers;
+    private final HashSet<String> subjects;
+    private final HashSet<String> consumed;
+    private final HashSet<String> produced;
+    private final String narration;
 
     public StagAction(HashSet<String> triggers, HashSet<String> subjects,
                       HashSet<String> consumed, HashSet<String> produced,

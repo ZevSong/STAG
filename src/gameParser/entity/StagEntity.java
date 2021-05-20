@@ -17,7 +17,11 @@ public class StagEntity {
         return description;
     }
 
-    public boolean isMovable() {
+    public String getClassName() {
+        return "StagEntity";
+    }
+
+    public boolean isCollectible() {
         return false;
     }
 

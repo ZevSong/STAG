@@ -15,13 +15,13 @@ import org.json.simple.parser.ParseException;
 public class ActionParser {
     private final ArrayList<StagAction> stagActionList;
 
-    public ActionParser(String actionFilename) {
+    public ActionParser(String actionFilename) throws IOException {
         this.stagActionList = new ArrayList<>();
+        FileReader reader = new FileReader(actionFilename);
         try {
-            FileReader reader = new FileReader(actionFilename);
             setStagActionList(reader);
-        } catch (IOException | ParseException e) {
-            System.out.println(e);
+        } catch (ParseException e) {
+            System.err.println(e);
         }
     }
 
@@ -35,7 +35,7 @@ public class ActionParser {
             HashSet<String> subjects = getHashSetFromJOSN(action, "subjects");
             HashSet<String> consumed = getHashSetFromJOSN(action, "consumed");
             HashSet<String> produced = getHashSetFromJOSN(action, "produced");
-            String narration = getHashSetFromJOSN(action, "narration").toString();
+            String narration = action.get("narration").toString();
             StagAction stagAction = new StagAction(triggers, subjects, consumed, produced, narration);
             stagActionList.add(stagAction);
         }
@@ -44,8 +44,8 @@ public class ActionParser {
     private HashSet<String> getHashSetFromJOSN(JSONObject action, String key) {
         JSONArray jsonArray = (JSONArray) action.get(key);
         HashSet<String> hashSet = new HashSet<>();
-        for (int i = 0; i < jsonArray.size(); i++) {
-            hashSet.add(jsonArray.get(i).toString());
+        for (Object o : jsonArray) {
+            hashSet.add(o.toString());
         }
         return hashSet;
     }

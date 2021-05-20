@@ -6,7 +6,12 @@ public class Artefact extends StagEntity {
     }
 
     @Override
-    public boolean isMovable() {
+    public boolean isCollectible() {
         return true;
+    }
+
+    @Override
+    public String getClassName() {
+        return "StagEntity";
     }
 }
