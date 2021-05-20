@@ -21,6 +21,7 @@ public class StagEntity {
         return "StagEntity";
     }
 
+    // set entity cannot be collected as default
     public boolean isCollectible() {
         return false;
     }

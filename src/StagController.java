@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 public class StagController {
-    private StagGameModel gameWorld;
+    private final StagGameModel gameWorld;
     private Location curLocation;
     private Player curPlayer;
 
@@ -36,6 +36,7 @@ public class StagController {
             message.append("You are resurrected at the starting point.");
             resetCurPlayer();
         }
+        // update curPlayer
         gameWorld.getEntityMap().put(curPlayer, curLocation.getName());
 
         return message.toString();
@@ -75,6 +76,7 @@ public class StagController {
         return gameWorld.getBuildInCommandsSet().contains(tokens[1]);
     }
 
+    // switch to different build-in command cases
     private String handleBuildInCommand(String[] tokens) {
         String returnMessage = "";
         switch (tokens[1]) {
@@ -98,8 +100,9 @@ public class StagController {
         return returnMessage;
     }
 
+    // return the information of curPlayer's inventory
     private String handleInv() {
-        boolean isEmpty = true;
+        boolean isEmpty = true; // used to check if the curPlayer's inventory is empty
         StringBuilder stringBuffer = new StringBuilder("The artefacts in your bag are as follows: ");
         for (Artefact artefact: gameWorld.getInventoryMap().keySet()) {
             if (gameWorld.getInventoryMap().get(artefact).equals(this.curPlayer.getName())) {
@@ -113,6 +116,8 @@ public class StagController {
         return stringBuffer.toString();
     }
 
+    /* get command, pick the item for curPlayer
+     * should enter get [ArtefactName] */
     private String handleGet(String[] tokens) {
         if (tokens.length < 3) {
             return "You need to enter the name of the item to be collected.";
@@ -134,6 +139,8 @@ public class StagController {
         return "Here is no such thing.";
     }
 
+    /* drop command, drop the item for curPlayer
+     * should enter drop [ArtefactName] */
     private String handleDrop(String[] tokens) {
         if (tokens.length < 3) {
             return "You need to enter the name of the item to be dropped.";
@@ -150,6 +157,9 @@ public class StagController {
         return "You don't have such item.";
     }
 
+    /* goto command, move the curPlayer to next location
+     * also auto do the look command to show surroundings of next location
+     * should enter goto [nextLocationName] */
     private String handleGoto(String[] tokens) {
         if (tokens.length < 3) {
             return "You need to enter the name of the location to go.\n";
@@ -169,6 +179,8 @@ public class StagController {
         return "There is no path to such location.";
     }
 
+    /* look command, show surroundings of next location
+     * should enter look */
     private String handleLook() {
         StringBuilder stringBuilder = new StringBuilder("You are in ");
         stringBuilder.append(this.curLocation.getDescription()).append(". You can see: ");
@@ -183,6 +195,7 @@ public class StagController {
                 stringBuilder.append("\n").append(stagEntity.getDescription());
             }
         }
+        // show the next accessible path
         stringBuilder.append("\n").append("You can access from here: ");
         for (String startLocationName: gameWorld.getPathMap().keySet()) {
             if (startLocationName.equals(this.curLocation.getName())) {
@@ -217,15 +230,16 @@ public class StagController {
         StringBuilder stringBuffer = new StringBuilder();
         // find possibleActions
         ArrayList<StagAction> possibleActionList = getPossibleActionList(tokens);
+        // no possible action
         if (possibleActionList.size() == 0) {
             return "Did not find any build-in commands or trigger words, please enter some real commands.";
         }
-        // check conditions
+        // check conditions and run
         stringBuffer.append(handlePossibleActions(possibleActionList));
-
         return stringBuffer.toString();
     }
 
+    // check if tokens contain the trigger words for actions, and return possible actions
     private ArrayList<StagAction> getPossibleActionList(String[] tokens) {
         ArrayList<StagAction> possibleActionList = new ArrayList<>();
         for (StagAction stagAction: gameWorld.getStagActionList()) {
@@ -291,6 +305,7 @@ public class StagController {
         return stagAction.getNarration();
     }
 
+    /* do consume, there are 3 types of consumed: Location, health, other */
     private void doConsumedAction(StagAction stagAction) {
         for (String consumed: stagAction.getConsumed()) {
             // check if is location or health
@@ -335,10 +350,12 @@ public class StagController {
         return false;
     }
 
+    /* do product, there are 3 types of produced: Location, health, other */
     private void doProducedAction(StagAction stagAction) {
         for (String produced: stagAction.getProduced()) {
             // check if is location or health
             if (isLocation(produced)) {
+                // new String to make sure key is repeatable
                 gameWorld.getPathMap().put(new String(this.curLocation.getName()), produced);
             } else if (produced.equals("health")) {
                 curPlayer.improveHealth(1);
@@ -354,13 +371,18 @@ public class StagController {
         }
     }
 
+    /* reset curPlayer
+     * 8 drop all the item at curLocation,
+     * reset curPlayer's health lever, and move to start point */
     private void resetCurPlayer() {
+        //drop items
         for (Artefact artefact: gameWorld.getInventoryMap().keySet()) {
             if (gameWorld.getInventoryMap().get(artefact).equals(curPlayer.getName())) {
                 gameWorld.getEntityMap().put(artefact, curLocation.getName());
                 gameWorld.getInventoryMap().remove(artefact);
             }
         }
+        // reset health lever, move to start point
         curPlayer.resetHealth();
         curLocation = gameWorld.getLocationList().get(0);
     }

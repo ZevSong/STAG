@@ -13,7 +13,9 @@ import java.util.IdentityHashMap;
 
 public class GraphParser {
     private final ArrayList<Location> locationList;
+    // good at read and store
     private final HashMap<StagEntity, String> entityMap;
+    // path require key repeatable
     private final IdentityHashMap<String, String> pathMap;
 
     public GraphParser(String entityFilename) throws IOException {
@@ -28,6 +30,7 @@ public class GraphParser {
         }
     }
 
+    // read data from dot file
     private void setDataFromDot(FileReader reader) throws ParseException{
         Parser parser = new Parser();
         parser.parse(reader);
