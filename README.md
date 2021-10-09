@@ -1,5 +1,5 @@
 # STAG
-a general-purpose socket-server game-engine for text adventure games
+A general-purpose socket-server game-engine for text adventure games
 
 ## Game Server
     $ java StagServer entities.dot actions.json
